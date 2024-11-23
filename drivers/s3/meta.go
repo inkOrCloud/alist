@@ -20,6 +20,7 @@ type Addition struct {
 	ListObjectVersion        string `json:"list_object_version" type:"select" options:"v1,v2" default:"v1"`
 	RemoveBucket             bool   `json:"remove_bucket" help:"Remove bucket name from path when using custom host."`
 	AddFilenameToDisposition bool   `json:"add_filename_to_disposition" help:"Add filename to Content-Disposition header."`
+	PreSignUrl               bool   `json:"pre_sign_url"`
 }
 
 func init() {

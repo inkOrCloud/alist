@@ -98,21 +98,21 @@ func (d *S3) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*mo
 	req, _ := d.linkClient.GetObjectRequest(input)
 	var link model.Link
 	var err error
-	if d.CustomHost != "" {
+	if common.ShouldProxy(d, filename) {
+		err = req.Sign()
+		link.URL = req.HTTPRequest.URL.String()
+		link.Header = req.HTTPRequest.Header
+	} else if d.PreSignUrl {
+		link.URL, err = req.Presign(time.Hour * time.Duration(d.SignURLExpire))
+	} else {
 		err = req.Build()
 		link.URL = req.HTTPRequest.URL.String()
-		if d.RemoveBucket {
-			link.URL = strings.Replace(link.URL, "/"+d.Bucket, "", 1)
-		}
-	} else {
-		if common.ShouldProxy(d, filename) {
-			err = req.Sign()
-			link.URL = req.HTTPRequest.URL.String()
-			link.Header = req.HTTPRequest.Header
-		} else {
-			link.URL, err = req.Presign(time.Hour * time.Duration(d.SignURLExpire))
-		}
 	}
+
+	if d.CustomHost != "" && d.RemoveBucket {
+		link.URL = strings.Replace(link.URL, "/"+d.Bucket, "", 1)
+	}
+
 	if err != nil {
 		return nil, err
 	}
